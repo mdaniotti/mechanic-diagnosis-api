@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Diagnostico from "../models/Diagnostico";
 import { Causas } from "../types/models";
 import { CreateDiagnosticoBody } from "../types/routes";
+import { generarDiagnosticoConIA } from "../services/openaiService";
 
 /**
  * @route POST /diagnostico
@@ -14,12 +15,8 @@ export const createDiagnostico = async (
   try {
     const { sintomas, autoId } = req.body;
 
-    // Generar con OpenAI
-    const causas: Causas = {
-      probabilidadAlta: "Bomba de dirección asistida defectuosa",
-      probabilidadMedia: "Fuga en mangueras de dirección",
-      probabilidadBaja: "Nivel de líquido de dirección bajo",
-    };
+    // Generar diagnóstico con OpenAI
+    const causas: Causas = await generarDiagnosticoConIA(sintomas);
 
     const nuevoDiagnostico = new Diagnostico({
       autoId,
@@ -32,6 +29,8 @@ export const createDiagnostico = async (
     res.status(201).json(nuevoDiagnostico);
   } catch (error) {
     console.error("Error al obtener el diagnóstico:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
+    res
+      .status(500)
+      .json({ message: "Error al obtener el diagnóstico: " + error.message });
   }
 };
